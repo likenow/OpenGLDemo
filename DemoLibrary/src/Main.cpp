@@ -16,6 +16,7 @@
 #include "imgui/imgui_impl_opengl3.h"
 
 #include "tests/TestClearColor.h"
+#include "tests/Test.h"
 
 int main()
 {
@@ -175,16 +176,17 @@ int main()
 
         Renderer renderer;
 
-        test::TestClearColor test;
+        test::Test* currentTest = nullptr;
+        test::TestMenu* testMenu = new test::TestMenu(currentTest);
+        currentTest = testMenu;
+        testMenu->RegisterTest<test::TestClearColor>("Clear Color");
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
+            GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
             /* Render here */
             renderer.Clear();
-
-            test.OnUpdate(0.0f);
-            test.OnRender();
 
             // Start the Dear ImGui frame
             ImGui_ImplOpenGL3_NewFrame();
@@ -230,8 +232,20 @@ int main()
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
                 ImGui::End();
             }
-
-            test.OnImGuiRender();
+            if (currentTest)
+            {
+                currentTest->OnUpdate(0.0f);
+                currentTest->OnRender();
+                ImGui::Begin("Test");
+                if (currentTest != testMenu && ImGui::Button("<-"))
+                {
+                    delete currentTest;
+                    currentTest = testMenu;
+                }
+                currentTest->OnImGuiRender();
+                
+                ImGui::End();
+            }
 
             // Rendering
             ImGui::Render();
@@ -247,6 +261,9 @@ int main()
             /* Poll for and process events */
             GLCall(glfwPollEvents());
         }
+        delete currentTest;
+        if (currentTest != testMenu)
+            delete testMenu;
     }
 
     // Cleanup
