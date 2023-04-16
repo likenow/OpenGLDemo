@@ -15,6 +15,8 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+#include "tests/TestClearColor.h"
+
 int main()
 {
     GLFWwindow* window;
@@ -166,17 +168,23 @@ int main()
 
         glm::vec3 translationA(200, 200, 0);
         glm::vec3 translationB(400, 200, 0);
-
+        /*
         float r = 0.0f;
         float increment = 0.05f;
+        */
 
         Renderer renderer;
+
+        test::TestClearColor test;
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
             /* Render here */
             renderer.Clear();
+
+            test.OnUpdate(0.0f);
+            test.OnRender();
 
             // Start the Dear ImGui frame
             ImGui_ImplOpenGL3_NewFrame();
@@ -204,7 +212,8 @@ int main()
                 renderer.Draw(va, ib, shader);
             }
 
-            //shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+            /*
+            shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
 
             if (r > 1.0f)
                 increment = -0.05f;
@@ -212,6 +221,7 @@ int main()
                 increment = 0.05f;
 
             r += increment;
+            */
 
             {
                 ImGui::Begin("Hello, world!");
@@ -220,6 +230,8 @@ int main()
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
                 ImGui::End();
             }
+
+            test.OnImGuiRender();
 
             // Rendering
             ImGui::Render();
