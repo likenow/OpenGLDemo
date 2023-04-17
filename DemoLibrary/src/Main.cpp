@@ -17,6 +17,7 @@
 
 #include "tests/TestClearColor.h"
 #include "tests/Test.h"
+#include "tests/TestTexture2D.h"
 
 int main()
 {
@@ -66,7 +67,6 @@ int main()
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
-    glfwSwapInterval(1);
 
     GLenum err = glewInit();
     if (GLEW_OK != err)
@@ -81,9 +81,6 @@ int main()
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -95,91 +92,13 @@ int main()
     // here add a scope because of scoping
     // glfwTerminate the gl contenxt will destory, but our call while still running
     {
-        /*
-        // use index buffer
-        float positions[] = {
-            -0.5f, -0.5f,
-             0.5f, -0.5f,
-             0.5f,  0.5f,
-            -0.5f,  0.5f
-        };
-        */
-        /*
-        float positions[] = {
-            -0.5f, -0.5f, 0.0f, 0.0f,
-             0.5f, -0.5f, 1.0f, 0.0f,
-             0.5f,  0.5f, 1.0f, 1.0f,
-            -0.5f,  0.5f, 0.0f, 1.0f
-        };
-        */
-        /* 
-        顶点位置浮点型数组
-        the center point is (0,0)
-        x,y -50,-50
-        */
-        float positions[] = {
-           -50.0f, -50.0f, 0.0f, 0.0f, // 0
-            50.0f, -50.0f, 1.0f, 0.0f, // 1
-            50.0f,  50.0f, 1.0f, 1.0f, // 2
-           -50.0f,  50.0f, 0.0f, 1.0f  // 3
-        };
-
-        unsigned int indices[] = {
-            0, 1, 2,
-            2, 3, 0
-        };
-
-        GLCall(glEnable(GL_BLEND));
-        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-        VertexArray va;
-        //VertexBuffer vb(positions, 4 * 2 * sizeof(float));
-        VertexBuffer vb(positions, 4 * 4 * sizeof(float));
-
-        VertexBufferLayout layout;
-        layout.Push<float>(2);
-        layout.Push<float>(2);
-        va.AddBuffer(vb, layout);
-
-        IndexBuffer ib(indices, 6);
-
-        // create projection matrix
-        // orthographic matrix
-        // 4:3
-        // specifying the 4 kind of boundaries f our window
-        //glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-        /* 这里应该是 960x720 而不是 960x540 的分辨率 */
-        //glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-        
-        glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-       
-        Shader shader("res/shaders/Basic.shader");
-        shader.Bind();
-        //shader.SetUniform4f("u_Color", 0.6f, 0.3f, 0.8f, 1.0f);
-
-        Texture texture("res/textures/ChernoLogo.png");
-        texture.Bind();
-        shader.SetUniform1i("u_Texture", 0);
-
-        va.Unbind();
-        vb.Unbind();
-        ib.Unbind();
-        shader.Unbind();
-
-        glm::vec3 translationA(200, 200, 0);
-        glm::vec3 translationB(400, 200, 0);
-        /*
-        float r = 0.0f;
-        float increment = 0.05f;
-        */
-
         Renderer renderer;
 
         test::Test* currentTest = nullptr;
         test::TestMenu* testMenu = new test::TestMenu(currentTest);
         currentTest = testMenu;
         testMenu->RegisterTest<test::TestClearColor>("Clear Color");
+        testMenu->RegisterTest<test::TestTexture2D>("Texture 2D");
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -193,45 +112,6 @@ int main()
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            // Here bind that's a bit redundant, that's a bit slow, a bit of a waste of performance
-            // usually in more complicated setups, such as a natural game engine or a graphics engine
-            // you would have a some kind of cache system, that would be like hang on a minute
-            // you're trying to bind the shader that's already bound
-            // A
-            {
-                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
-                glm::mat4 mvp = proj * view * model;
-                shader.Bind();
-                shader.SetUniformMat4f("u_MVP", mvp);
-                renderer.Draw(va, ib, shader);
-            }
-            // B
-            {
-                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
-                glm::mat4 mvp = proj * view * model;
-                shader.Bind();
-                shader.SetUniformMat4f("u_MVP", mvp);
-                renderer.Draw(va, ib, shader);
-            }
-
-            /*
-            shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
-
-            if (r > 1.0f)
-                increment = -0.05f;
-            else if (r < 0.0f)
-                increment = 0.05f;
-
-            r += increment;
-            */
-
-            {
-                ImGui::Begin("Hello, world!");
-                ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 960.0f);
-                ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, 960.0f);
-                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-                ImGui::End();
-            }
             if (currentTest)
             {
                 currentTest->OnUpdate(0.0f);
