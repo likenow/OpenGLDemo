@@ -18,6 +18,7 @@
 #include "tests/TestClearColor.h"
 #include "tests/Test.h"
 #include "tests/TestTexture2D.h"
+#include "tests/TestBatchRender.h"
 
 int main()
 {
@@ -99,6 +100,7 @@ int main()
         currentTest = testMenu;
         testMenu->RegisterTest<test::TestClearColor>("Clear Color");
         testMenu->RegisterTest<test::TestTexture2D>("Texture 2D");
+        testMenu->RegisterTest<test::TestBatchRender>("Batch Render");
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
